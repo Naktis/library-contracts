@@ -1,5 +1,5 @@
-var Taxi = artifacts.require("./Taxi.sol");
+var Library = artifacts.require("Library");
 
-module.exports = function(deployer, networks, accounts) {
-  deployer.deploy(Taxi, accounts[1]);
+module.exports = function(deployer) {
+  deployer.deploy(Library);
 };
