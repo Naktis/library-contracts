@@ -1,0 +1,65 @@
+[
+  {
+    "id": 0,
+    "name": "1984",
+    "author": "George Orwell",
+    "picture": "images/0.jpg",
+    "rating": 4.19
+  },
+  {
+    "id": 1,
+    "name": "The Great Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "picture": "images/1.jpg",
+    "rating": 3.92
+  },
+  {
+    "id": 2,
+    "name": "Little Women",
+    "author": "Louisa May Alcott",
+    "picture": "images/2.jpg",
+    "rating": 4.09
+  },
+  {
+    "id": 3,
+    "name": "Fahrenheit 451",
+    "author": "Ray Bradbury",
+    "picture": "images/3.jpg",
+    "rating": 3.99
+  },
+  {
+    "id": 4,
+    "name": "Hamlet",
+    "author": "William Shakespeare",
+    "picture": "images/4.jpg",
+    "rating": 4.03
+  },
+  {
+    "id": 5,
+    "name": "Les Misérables",
+    "author": "Victor Hugo",
+    "picture": "images/5.jpg",
+    "rating": 4.18
+  },
+  {
+    "id": 6,
+    "name": "Crime and Punishment",
+    "author": "Fyodor Dostoyevsky",
+    "picture": "images/6.jpg",
+    "rating": 4.22
+  },
+  {
+    "id": 7,
+    "name": "The Odyssey",
+    "author": "Homer",
+    "picture": "images/7.jpg",
+    "rating": 3.77
+  },
+  {
+    "id": 8,
+    "name": "Anna Karenina",
+    "author": "Leo Tolstoy",
+    "picture": "images/8.jpg",
+    "rating": 4.06
+  }
+]

@@ -1,144 +1,121 @@
 App = {
-  loading: false,
+  web3Provider: null,
   contracts: {},
 
-  load: async () => {
-    await App.loadWeb3()
-    await App.loadAccount()
-    await App.loadContract()
-    await App.render()
+  init: async function() {
+    // Load books.
+    $.getJSON('../books.json', function(data) {
+      var booksRow = $('#booksRow');
+      var bookTemplate = $('#bookTemplate');
+
+      for (i = 0; i < data.length; i ++) {
+        bookTemplate.find('.panel-title').text(data[i].name);
+        bookTemplate.find('img').attr('src', data[i].picture);
+        bookTemplate.find('.book-author').text(data[i].author);
+        bookTemplate.find('.book-rating').text(data[i].rating);
+        bookTemplate.find('.btn-borrow').attr('data-id', data[i].id);
+
+        booksRow.append(bookTemplate.html());
+      }
+    });
+
+    return await App.initWeb3();
   },
 
-  // https://medium.com/metamask/https-medium-com-metamask-breaking-change-injecting-web3-7722797916a8
-  loadWeb3: async () => {
-    if (typeof web3 !== 'undefined') {
-      App.web3Provider = web3.currentProvider
-      web3 = new Web3(web3.currentProvider)
-    } else {
-      window.alert("Please connect to Metamask.")
-    }
+  initWeb3: async function() {
     // Modern dapp browsers...
     if (window.ethereum) {
-      window.web3 = new Web3(ethereum)
+      App.web3Provider = window.ethereum;
       try {
-        // Request account access if needed
-        await ethereum.enable()
-        // Acccounts now exposed
-        web3.eth.sendTransaction({/* ... */})
+        // Request account access
+        await window.ethereum.enable();
       } catch (error) {
         // User denied account access...
+        console.error("User denied account access")
       }
     }
     // Legacy dapp browsers...
     else if (window.web3) {
-      App.web3Provider = web3.currentProvider
-      window.web3 = new Web3(web3.currentProvider)
-      // Acccounts always exposed
-      web3.eth.sendTransaction({/* ... */})
+      App.web3Provider = window.web3.currentProvider;
     }
-    // Non-dapp browsers...
+    // If no injected web3 instance is detected, fall back to Ganache
     else {
-      console.log('Non-Ethereum browser detected. You should consider trying MetaMask!')
+      App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
     }
+    web3 = new Web3(App.web3Provider);
+
+    return App.initContract();
   },
 
-  loadAccount: async () => {
-    // Set the current blockchain account
-    App.account = web3.eth.accounts[0]
+  initContract: function() {
+    $.getJSON('Library.json', function(data) {
+      // Get the necessary contract artifact file and instantiate it with @truffle/contract
+      var LibraryArtifact = data;
+      App.contracts.Library = TruffleContract(LibraryArtifact);
+    
+      // Set the provider for our contract
+      App.contracts.Library.setProvider(App.web3Provider);
+    
+      // Use our contract to retrieve and mark the borrowed books
+      return App.markBorrowed();
+    });
+
+    return App.bindEvents();
   },
 
-  loadContract: async () => {
-    // Create a JavaScript version of the smart contract
-    const orderList = await $.getJSON('Taxi.json')
-    App.contracts.Taxi = TruffleContract(orderList)
-    App.contracts.Taxi.setProvider(App.web3Provider)
-
-    // Hydrate the smart contract with values from the blockchain
-    App.orderList = await App.contracts.Taxi.deployed()
+  bindEvents: function() {
+    $(document).on('click', '.btn-borrow', App.handleBorrow);
   },
 
-  render: async () => {
-    // Prevent double render
-    if (App.loading) {
-      return
-    }
+  markBorrowed: async function() {
+    var libraryInstance;
 
-    // Update app loading state
-    App.setLoading(true)
-
-    // Render Account
-    $('#account').html(App.account)
-
-    // Render Orders
-    await App.renderOrders()
-
-    // Update loading state
-    App.setLoading(false)
+    App.contracts.Library.deployed().then(async function(instance) {
+      libraryInstance = instance;
+      return await libraryInstance.bookCount();
+    }).then(async function(borrowers) {
+      for (i = 0; i < borrowers; i++) {
+        borrower = await libraryInstance.books(i);
+        if (borrower !== '0x0000000000000000000000000000000000000000') {
+          $('.panel-book').eq(i).find('button').text('Success').attr('disabled', true);
+        }
+      }
+    }).catch(function(err) {
+      console.log(err.message);
+    });
   },
-/*
-  renderOrders: async () => {
-    // Load the total order count from the blockchain
-    const orderCount = await App.orderList.orderCount()
-    const $orderTemplate = $('.orderTemplate')
 
-    // Render out each order with a new order template
-    for (var i = 1; i <= orderCount; i++) {
-      // Fetch the order data from the blockchain
-      const order = await App.orderList.orders(i)
-      const orderId = order[0].toNumber()
-      const orderXDep = order[1]
-      const orderCompleted = order[8]
+  handleBorrow: function(event) {
+    event.preventDefault();
 
-      // Create the html for the order
-      const $newOrderTemplate = $orderTemplate.clone()
-      $newOrderTemplate.find('.content').html(orderXDep)
-      $newOrderTemplate.find('input')
-                      .prop('name', orderId)
-                      .prop('checked', orderCompleted)
-                      .on('click', App.toggleCompleted)
+    var bookId = parseInt($(event.target).data('id'));
 
-      // Put the order in the correct list
-      if (orderCompleted) {
-        $('#completedOrderList').append($newOrderTemplate)
-      } else {
-        $('#orderList').append($newOrderTemplate)
+    var libraryInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
       }
 
-      // Show the order
-      $newOrderTemplate.show()
-    }
-  },
+      var account = accounts[1];
 
-  createOrder: async () => {
-    App.setLoading(true)
-    const content = $('#newOrder').val()
-    await App.orderList.createOrder(content)
-    window.location.reload()
-  },
+      App.contracts.Library.deployed().then(function(instance) {
+        libraryInstance = instance;
 
-  toggleCompleted: async (e) => {
-    App.setLoading(true)
-    const orderId = e.target.name
-    await App.orderList.toggleCompleted(orderId)
-    window.location.reload()
-  },
-*/
-  setLoading: (boolean) => {
-    App.loading = boolean
-    const loader = $('#loader')
-    const content = $('#content')
-    if (boolean) {
-      loader.show()
-      content.hide()
-    } else {
-      loader.hide()
-      content.show()
-    }
+        // Execute borrow as a transaction by sending account
+        return libraryInstance.borrowBook(bookId, {from: account});
+      }).then(function(result) {
+        return App.markBorrowed();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
   }
-}
 
-$(() => {
-  $(window).load(() => {
-    App.load()
-  })
-})
+};
+
+$(function() {
+  $(window).load(function() {
+    App.init();
+  });
+});
