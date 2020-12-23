@@ -10,26 +10,29 @@ contract Library {
     }
 
     mapping (uint => Book) public books;
+    
+    event BookBorrowed(uint id, address borrower);
+    event BookReturned(uint id, address borrower);
 
-    function borrowBook(uint bookId) public returns (uint) {
+    function borrowBook(uint bookId) public {
         require(bookId >= 0 && bookId < bookCount);
         require(books[bookId].borrower == address(0));
 
         books[bookId].borrower = msg.sender;
-
-        return bookId;
+        
+        emit BookBorrowed(bookId, msg.sender);
     }
 
-    function returnBook(uint bookId) public returns (uint) {
+    function returnBook(uint bookId) public {
         require(bookId >= 0 && bookId < bookCount);
         require(books[bookId].borrower == msg.sender);
 
         books[bookId].borrower = address(0);
-
-        return bookId;
+        
+        emit BookReturned(bookId, msg.sender);
     }
 
-    constructor() public  {
+    constructor() public {
         for (uint i = 0; i <= bookCount; i ++) {
             books[i].id = i;
             books[i].borrower = address(0);

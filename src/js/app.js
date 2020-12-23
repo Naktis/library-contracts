@@ -127,7 +127,7 @@ App = {
 
         // Execute borrow as a transaction by sending account
         return libraryInstance.borrowBook(bookId, {from: account});
-      }).then(function(result) {
+      }).then(function() {
         return App.markBorrowed();
       }).catch(function(err) {
         console.log(err.message);
@@ -164,7 +164,7 @@ App = {
           // Execute borrow as a transaction by sending account
           return libraryInstance.returnBook(bookId, {from: account});
         }
-      }).then(function(result) {
+      }).then(function() {
         return App.markReturned();
       }).catch(function(err) {
         console.log(err.message);
