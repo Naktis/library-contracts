@@ -1,2 +1,8 @@
 node_modules/
 build/
+src/css/
+src/fonts/
+test/
+bootstrap.min.js
+truffle-contract.js
+web3.min.js
