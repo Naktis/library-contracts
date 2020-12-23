@@ -31,16 +31,8 @@ contract Library {
 
     constructor() public  {
         for (uint i = 0; i <= bookCount; i ++) {
+            books[i].id = i;
             books[i].borrower = address(0);
         }
     }
-/*
-    function getBorrowers() public view returns (address[16] memory) {
-        return adopters;
-    }*/
-/*
-    function createBook(string memory _content) public {
-        bookCount ++;
-        books[bookCount] = Book(bookCount, address(0));
-    }*/
 }
