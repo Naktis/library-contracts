@@ -14,6 +14,7 @@ App = {
         bookTemplate.find('.book-author').text(data[i].author);
         bookTemplate.find('.book-rating').text(data[i].rating);
         bookTemplate.find('.btn-borrow').attr('data-id', data[i].id);
+        bookTemplate.find('.btn-return').attr('data-id', data[i].id);
 
         booksRow.append(bookTemplate.html());
       }
@@ -65,6 +66,7 @@ App = {
 
   bindEvents: function() {
     $(document).on('click', '.btn-borrow', App.handleBorrow);
+    $(document).on('click', '.btn-return', App.handleReturn);
   },
 
   markBorrowed: async function() {
@@ -76,8 +78,28 @@ App = {
     }).then(async function(borrowers) {
       for (i = 0; i < borrowers; i++) {
         borrower = await libraryInstance.books(i);
-        if (borrower !== '0x0000000000000000000000000000000000000000') {
-          $('.panel-book').eq(i).find('button').text('Success').attr('disabled', true);
+        if (borrower[1] !== '0x0000000000000000000000000000000000000000') {
+          $('.panel-book').eq(i).find('.btn-borrow').text('Borrowed').attr('disabled', true);
+          $('.panel-book').eq(i).find('.btn-return').text('Return').attr('disabled', false);
+        }
+      }
+    }).catch(function(err) {
+      console.log(err.message);
+    });
+  },
+
+  markReturned: async function() {
+    var libraryInstance;
+
+    App.contracts.Library.deployed().then(async function(instance) {
+      libraryInstance = instance;
+      return await libraryInstance.bookCount();
+    }).then(async function(borrowers) {
+      for (i = 0; i < borrowers; i++) {
+        borrower = await libraryInstance.books(i);
+        if (borrower[1] == '0x0000000000000000000000000000000000000000') {
+          $('.panel-book').eq(i).find('.btn-borrow').text('Borrow').attr('disabled', false);
+          $('.panel-book').eq(i).find('.btn-return').text('Returned').attr('disabled', true);
         }
       }
     }).catch(function(err) {
@@ -97,7 +119,8 @@ App = {
         console.log(error);
       }
 
-      var account = accounts[1];
+      var account = accounts[0];
+      console.log(account);
 
       App.contracts.Library.deployed().then(function(instance) {
         libraryInstance = instance;
@@ -110,8 +133,44 @@ App = {
         console.log(err.message);
       });
     });
-  }
+  },
 
+  handleReturn: function(event) {
+    event.preventDefault();
+
+    var bookId = parseInt($(event.target).data('id'));
+
+    var libraryInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+      console.log(account);
+
+      App.contracts.Library.deployed().then(async function(instance) {
+        libraryInstance = instance;
+
+        var book = await libraryInstance.books(bookId);
+        if(book[1] != account) {
+          console.log(book);
+          console.log(account);
+          window.alert("This book is borrowed by another person.");
+          return;
+        }
+        else {
+          // Execute borrow as a transaction by sending account
+          return libraryInstance.returnBook(bookId, {from: account});
+        }
+      }).then(function(result) {
+        return App.markReturned();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  }
 };
 
 $(function() {

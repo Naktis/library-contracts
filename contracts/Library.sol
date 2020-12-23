@@ -2,7 +2,7 @@
 pragma solidity >=0.5.0;
 
 contract Library {
-    uint public bookCount = 9;
+    uint public bookCount = 8;
 
     struct Book {
         uint id;
@@ -12,7 +12,7 @@ contract Library {
     mapping (uint => Book) public books;
 
     function borrowBook(uint bookId) public returns (uint) {
-        require(bookId >= bookCount && bookId <= bookCount);
+        require(bookId >= 0 && bookId < bookCount);
         require(books[bookId].borrower == address(0));
 
         books[bookId].borrower = msg.sender;
@@ -21,12 +21,18 @@ contract Library {
     }
 
     function returnBook(uint bookId) public returns (uint) {
-        require(bookId >= bookCount && bookId <= bookCount);
+        require(bookId >= 0 && bookId < bookCount);
         require(books[bookId].borrower == msg.sender);
 
         books[bookId].borrower = address(0);
 
         return bookId;
+    }
+
+    constructor() public  {
+        for (uint i = 0; i <= bookCount; i ++) {
+            books[i].borrower = address(0);
+        }
     }
 /*
     function getBorrowers() public view returns (address[16] memory) {

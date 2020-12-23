@@ -54,12 +54,5 @@
     "author": "Homer",
     "picture": "images/7.jpg",
     "rating": 3.77
-  },
-  {
-    "id": 8,
-    "name": "Anna Karenina",
-    "author": "Leo Tolstoy",
-    "picture": "images/8.jpg",
-    "rating": 4.06
   }
 ]
