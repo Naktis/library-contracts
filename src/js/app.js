@@ -54,10 +54,8 @@ App = {
       var LibraryArtifact = data;
       App.contracts.Library = TruffleContract(LibraryArtifact);
     
-      // Set the provider for our contract
       App.contracts.Library.setProvider(App.web3Provider);
     
-      // Use our contract to retrieve and mark the borrowed books
       return App.markBorrowed();
     });
 
