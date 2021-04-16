@@ -30,7 +30,7 @@ Used Solidity, Metamask plugin, Truffle, Web3.js frameworks.
 
 7. Log into your testnet Metamask account or create a new one
 
-8. If you wallet is empty, get some test Ethereum from online faucets, i.e. [Ropsten](https://faucet.ropsten.be/)
+8. If your wallet is empty, get some test Ethereum from online faucets, i.e. [Ropsten](https://faucet.ropsten.be/)
 
 9. Click on a book you want to borrow or return and confirm the transaction using Metamask
 
